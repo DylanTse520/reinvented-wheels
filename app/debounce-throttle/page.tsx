@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
-import DebounceThrottleDemo from "@/components/DebounceDemo";
+import DebounceThrottleDemo from "@/components/DebounceThrottleDemo";
 
 import { debounce, throttle } from "@/utils/debounce-throttle";
 

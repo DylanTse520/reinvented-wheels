@@ -12,7 +12,7 @@ const DebounceThrottleDemo = ({
   return (
     <div className="flex flex-col items-center gap-4">
       <button
-        className="rounded-full border border-solid border-gray-200 bg-gray-900 px-4 py-2 hover:bg-gray-800"
+        className="rounded-full border-2 border-solid border-gray-50 bg-gray-50 px-4 py-2 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800"
         onClick={handler}
       >
         {children}
