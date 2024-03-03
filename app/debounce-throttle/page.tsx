@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
-import DebounceThrottleDemo from "@/components/DebounceThrottleDemo";
-
 import { debounce, throttle } from "@/utils/debounce-throttle";
 
+import DebounceThrottleDemo from "./DebounceThrottleDemo";
+
+/* eslint-disable react-hooks/exhaustive-deps */
 export default function Page() {
   const [listA, setListA] = useState<string[]>([]);
   const [listB, setListB] = useState<string[]>([]);
