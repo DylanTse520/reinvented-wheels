@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import TypingEffect from "./TypingEffect";
+import FakeLoading from "./FakeLoading";
 
 export default function Page() {
   return (
@@ -10,7 +10,7 @@ export default function Page() {
       <div className="mb-10">
         <Link href="/">Home</Link>
       </div>
-      <TypingEffect sentence="Typing, as your thoughts flow." />
+      <FakeLoading />
     </main>
   );
 }
