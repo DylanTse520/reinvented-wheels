@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/DylanTse520/reinvented-wheels/compare/v1.0.0...v1.0.1) (2024-06-21)
+
+
+### Bug Fixes
+
+* Remove test.txt file ([7d40756](https://github.com/DylanTse520/reinvented-wheels/commit/7d40756f304804e8a61ccf602733620d05844074))
+
 # 1.0.0 (2024-06-21)
 
 
