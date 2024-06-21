@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/DylanTse520/reinvented-wheels/compare/v1.0.3...v1.0.4) (2024-06-21)
+
+
+### Bug Fixes
+
+* Update release.yml to use actions/setup-node@v4 for setting up Node.js ([51e4b1a](https://github.com/DylanTse520/reinvented-wheels/commit/51e4b1ab1086286316b6514c85fa9d9f3a923c9d))
+
 ## [1.0.3](https://github.com/DylanTse520/reinvented-wheels/compare/v1.0.2...v1.0.3) (2024-06-21)
 
 
