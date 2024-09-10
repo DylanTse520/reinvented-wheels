@@ -2,10 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-interface SlackInputProps {
-  onSendMessage: (message: string) => void;
-}
-
 const getOptions = (searchTerm: string = ""): string[] => {
   const allOptions = [
     "John Doe",
@@ -24,10 +20,21 @@ const getOptions = (searchTerm: string = ""): string[] => {
   );
 };
 
-export default function SlackInput({ onSendMessage }: SlackInputProps) {
+export default function SlackInput({
+  onSendMessage,
+}: {
+  onSendMessage: (message: string) => void;
+}) {
   const [inputText, setInputText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [atRange, setAtRange] = useState<Range | undefined>(undefined);
+  const [nameCard, setNameCard] = useState<string>();
+  const [atRange, setAtRange] = useState<{
+    container: Node | undefined;
+    offset: number;
+  }>({
+    container: undefined,
+    offset: -1,
+  });
   const [searchTerm, setSearchTerm] = useState("");
 
   const textAreaRef = useRef<HTMLDivElement | null>(null);
@@ -46,7 +53,7 @@ export default function SlackInput({ onSendMessage }: SlackInputProps) {
           ? content.substring(0, cursorPosition)
           : "";
 
-        if (atRange === undefined) {
+        if (atRange.container === undefined) {
           const lastChar = textBeforeCursor.slice(-1);
           const secondLastChar = textBeforeCursor.slice(-2, -1);
           if (
@@ -56,17 +63,23 @@ export default function SlackInput({ onSendMessage }: SlackInputProps) {
             lastChar === "@"
           ) {
             setIsDropdownOpen(true);
-            setAtRange(range);
+            setAtRange({
+              container: range.startContainer,
+              offset: range.startOffset,
+            });
           }
         } else {
-          if (cursorPosition < atRange.startOffset) {
+          if (cursorPosition < atRange.offset) {
             setIsDropdownOpen(false);
-            setAtRange(undefined);
+            setAtRange({
+              container: undefined,
+              offset: -1,
+            });
           }
         }
 
         if (isDropdownOpen) {
-          const searchText = textBeforeCursor.slice(atRange?.startOffset);
+          const searchText = textBeforeCursor.slice(atRange?.offset);
           setSearchTerm(searchText);
         }
       }
@@ -82,23 +95,139 @@ export default function SlackInput({ onSendMessage }: SlackInputProps) {
         textAreaRef.current.textContent = "";
       }
       setIsDropdownOpen(false);
-      setAtRange(undefined);
+      setAtRange({
+        container: undefined,
+        offset: -1,
+      });
+    }
+  };
+
+  const highlightText = () => {
+    if (!textAreaRef.current) return;
+    const text = textAreaRef.current.textContent || "";
+    const options = getOptions();
+    const regex = new RegExp(`@(${options.join("|")})\\b`, "gi");
+
+    const fragment = document.createDocumentFragment();
+    let lastIndex = 0;
+
+    text.replace(regex, (match, name, offset) => {
+      fragment.appendChild(
+        document.createTextNode(text.slice(lastIndex, offset))
+      );
+
+      const span = document.createElement("span");
+      span.className = "bg-yellow-200";
+      span.textContent = match;
+      span.dataset.name = name;
+
+      fragment.appendChild(span);
+      lastIndex = offset + match.length;
+
+      return match;
+    });
+
+    if (lastIndex < text.length) {
+      fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+
+    textAreaRef.current.innerHTML = "";
+    textAreaRef.current.appendChild(fragment);
+
+    // Event delegation
+    textAreaRef.current.addEventListener("mouseenter", handleMouseEnter, true);
+    textAreaRef.current.addEventListener("mouseleave", handleMouseLeave, true);
+  };
+
+  const handleMouseEnter = (event: MouseEvent) => {
+    const span = (event.target as Element).closest("span");
+    if (span instanceof HTMLElement) {
+      setNameCard(span.dataset.name);
+    }
+  };
+
+  const handleMouseLeave = (event: MouseEvent) => {
+    if ((event.target as Element).closest("span")) {
+      setNameCard(undefined);
     }
   };
 
   const handleOptionClick = (option: string) => {
-    if (textAreaRef.current && atRange !== undefined) {
+    if (
+      textAreaRef.current &&
+      atRange.offset !== -1 &&
+      atRange.container !== undefined
+    ) {
       const newText = option + " ";
-      atRange.insertNode(document.createTextNode(newText));
-      atRange.collapse(false);
-      const selection = window.getSelection();
-      selection?.removeAllRanges();
-      selection?.addRange(atRange);
-      textAreaRef.current.focus();
-      const newValue = textAreaRef.current.textContent || "";
-      setInputText(newValue);
+
+      const fullContent = textAreaRef.current.textContent || "";
+
+      let absoluteOffset = atRange.offset;
+      let currentNode = atRange.container;
+      while (
+        currentNode !== textAreaRef.current &&
+        currentNode.previousSibling
+      ) {
+        currentNode = currentNode.previousSibling;
+        absoluteOffset += currentNode.textContent?.length || 0;
+      }
+
+      const beforeInsertionPoint = fullContent.slice(0, absoluteOffset);
+      const afterInsertionPoint = fullContent.slice(absoluteOffset);
+      const newContent = beforeInsertionPoint + newText + afterInsertionPoint;
+      setInputText(newContent);
+      textAreaRef.current.textContent = newContent;
+
+      highlightText();
+
+      setTimeout(() => {
+        if (textAreaRef.current) {
+          let currentOffset = 0;
+          let targetNode = null;
+          let targetOffset = 0;
+          const newCursorPosition = absoluteOffset + newText.length;
+
+          const findTextNode = (node: Node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              if (
+                currentOffset + node.textContent!.length >=
+                newCursorPosition
+              ) {
+                targetNode = node;
+                targetOffset = newCursorPosition - currentOffset;
+                return true;
+              }
+              currentOffset += node.textContent!.length;
+            } else {
+              for (const childNode of Array.from(node.childNodes)) {
+                if (findTextNode(childNode)) {
+                  return true;
+                }
+              }
+            }
+            return false;
+          };
+
+          findTextNode(textAreaRef.current);
+
+          if (targetNode) {
+            const newRange = document.createRange();
+            const selection = window.getSelection();
+            newRange.setStart(targetNode, targetOffset);
+            newRange.setEnd(targetNode, targetOffset);
+            selection?.removeAllRanges();
+            selection?.addRange(newRange);
+          }
+
+          textAreaRef.current.focus();
+        }
+      }, 0);
+
       setIsDropdownOpen(false);
-      setAtRange(undefined);
+      setAtRange({
+        container: undefined,
+        offset: -1,
+      });
     }
   };
 
@@ -109,7 +238,10 @@ export default function SlackInput({ onSendMessage }: SlackInputProps) {
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsDropdownOpen(false);
-        setAtRange(undefined);
+        setAtRange({
+          container: undefined,
+          offset: -1,
+        });
       }
     };
 
@@ -126,13 +258,14 @@ export default function SlackInput({ onSendMessage }: SlackInputProps) {
         contentEditable
         onInput={handleInputChange}
         onKeyDown={handleKeyDown}
-        className="min-h-40 w-full whitespace-pre rounded-md border border-gray-300 bg-slate-50 p-2 text-gray-900"
+        className="min-h-40 w-full whitespace-pre-wrap break-words rounded-md border border-gray-300 bg-slate-50 p-2 text-gray-900"
       />
-      {(inputText === "" || inputText === undefined) && (
+      {inputText === "" && (
         <div className="pointer-events-none absolute left-[9px] top-[9px] text-gray-400">
           Type your message here...
         </div>
       )}
+      {nameCard && <div className="absolute bottom-full">{nameCard}</div>}
       {isDropdownOpen && getOptions(searchTerm).length !== 0 && (
         <div
           className="absolute z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg"
