@@ -27,7 +27,6 @@ export default function SlackInput({
 }) {
   const [inputText, setInputText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [nameCard, setNameCard] = useState<string>();
   const [atRange, setAtRange] = useState<{
     container: Node | undefined;
     offset: number;
@@ -36,6 +35,11 @@ export default function SlackInput({
     offset: -1,
   });
   const [searchTerm, setSearchTerm] = useState("");
+  const [nameCard, setNameCard] = useState<string>();
+  const [nameCardPosition, setNameCardPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
 
   const textAreaRef = useRef<HTMLDivElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -141,14 +145,21 @@ export default function SlackInput({
 
   const handleMouseEnter = (event: MouseEvent) => {
     const span = (event.target as Element).closest("span");
-    if (span instanceof HTMLElement) {
+    if (span instanceof HTMLElement && textAreaRef.current) {
       setNameCard(span.dataset.name);
+      const parentRect = textAreaRef.current.getBoundingClientRect();
+      const spanRect = span.getBoundingClientRect();
+      setNameCardPosition({
+        top: spanRect.top - parentRect.top,
+        left: spanRect.left - parentRect.left,
+      });
     }
   };
 
   const handleMouseLeave = (event: MouseEvent) => {
     if ((event.target as Element).closest("span")) {
       setNameCard(undefined);
+      setNameCardPosition(null);
     }
   };
 
@@ -252,23 +263,36 @@ export default function SlackInput({
   }, []);
 
   return (
-    <div className="relative">
+    <div className="relative min-h-40">
       <div
         ref={textAreaRef}
         contentEditable
         onInput={handleInputChange}
         onKeyDown={handleKeyDown}
-        className="min-h-40 w-full whitespace-pre-wrap break-words rounded-md border border-gray-300 bg-slate-50 p-2 text-gray-900"
+        className="absolute h-full w-full whitespace-pre-wrap break-words rounded-md border border-gray-300 bg-slate-50 p-2 text-gray-900"
       />
       {inputText === "" && (
         <div className="pointer-events-none absolute left-[9px] top-[9px] text-gray-400">
           Type your message here...
         </div>
       )}
-      {nameCard && <div className="absolute bottom-full">{nameCard}</div>}
+      {nameCard && nameCardPosition && (
+        <div
+          className="absolute z-20 flex flex-col overflow-clip rounded border border-gray-300 bg-white text-gray-900 shadow-md"
+          style={{
+            top: `${nameCardPosition.top + 30}px`,
+            left: `${nameCardPosition.left}px`,
+          }}
+        >
+          <span className="bg-gray-100 px-4 py-3 font-bold leading-4">
+            People
+          </span>
+          <span className="px-4 py-2">{nameCard}</span>
+        </div>
+      )}
       {isDropdownOpen && getOptions(searchTerm).length !== 0 && (
         <div
-          className="absolute z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg"
+          className="absolute top-full z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg"
           ref={dropdownRef}
         >
           <ul className="py-1">
