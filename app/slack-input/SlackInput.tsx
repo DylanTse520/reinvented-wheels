@@ -5,24 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Dropdown from "./Dropdown";
 import NameCard from "./NameCard";
 import TextArea from "./TextArea";
-
-const getOptions = (searchTerm: string = ""): string[] => {
-  const allOptions = [
-    "John Doe",
-    "Jane Smith",
-    "Alice Johnson",
-    "Bob Williams",
-    "Emma Brown",
-  ];
-
-  if (!searchTerm) {
-    return allOptions;
-  }
-
-  return allOptions.filter((option) =>
-    option.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-};
+import { getOptions, highlightText } from "./helper";
 
 export default function SlackInput({
   onSendMessage,
@@ -144,43 +127,6 @@ export default function SlackInput({
     }
   };
 
-  const highlightText = () => {
-    if (!textAreaRef.current) return;
-    const text = textAreaRef.current.textContent || "";
-    const options = getOptions();
-    const regex = new RegExp(`@(${options.join("|")})\\b`, "gi");
-
-    const fragment = document.createDocumentFragment();
-    let lastIndex = 0;
-
-    text.replace(regex, (match, name, offset) => {
-      fragment.appendChild(
-        document.createTextNode(text.slice(lastIndex, offset))
-      );
-
-      const span = document.createElement("span");
-      span.className = "bg-yellow-200";
-      span.textContent = match;
-      span.dataset.name = name;
-
-      fragment.appendChild(span);
-      lastIndex = offset + match.length;
-
-      return match;
-    });
-
-    if (lastIndex < text.length) {
-      fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
-    }
-
-    textAreaRef.current.innerHTML = "";
-    textAreaRef.current.appendChild(fragment);
-
-    // Event delegation
-    textAreaRef.current.addEventListener("mouseenter", handleMouseEnter, true);
-    textAreaRef.current.addEventListener("mouseleave", handleMouseLeave, true);
-  };
-
   const handleMouseEnter = (event: MouseEvent) => {
     const span = (event.target as Element).closest("span");
     if (span instanceof HTMLElement && textAreaRef.current) {
@@ -229,7 +175,11 @@ export default function SlackInput({
       setInputText(newContent);
       textAreaRef.current.textContent = newContent;
 
-      highlightText();
+      highlightText({
+        node: textAreaRef.current,
+        handleMouseEnter,
+        handleMouseLeave,
+      });
 
       setTimeout(() => {
         if (textAreaRef.current) {
