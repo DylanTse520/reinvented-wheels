@@ -16,7 +16,7 @@ const getOptions = (searchTerm: string = ""): string[] => {
   }
 
   return allOptions.filter((option) =>
-    option.toLowerCase().includes(searchTerm.toLowerCase())
+    option.slice(1).toLowerCase().includes(searchTerm.slice(1).toLowerCase())
   );
 };
 
