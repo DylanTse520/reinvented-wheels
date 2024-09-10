@@ -6,6 +6,7 @@ export default function Home() {
       <Link href="/debounce-throttle">Debounce and throttle demo</Link>
       <Link href="/typing-effect">Typing effect demo</Link>
       <Link href="/fake-loading">Fake loading demo</Link>
+      <Link href="/slack-input">Slack input demo</Link>
     </main>
   );
 }
