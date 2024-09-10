@@ -320,6 +320,7 @@ export default function SlackInput({
             options={getOptions(searchTerm)}
             handleOptionClick={handleOptionClick}
             dropdownPosition={dropdownPosition}
+            dropdownRef={dropdownRef}
           />
         )}
     </div>

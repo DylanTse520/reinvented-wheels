@@ -4,12 +4,14 @@ interface DropdownProps {
   options: string[];
   handleOptionClick: (option: string) => void;
   dropdownPosition: { top: number; left: number };
+  dropdownRef: React.RefObject<HTMLDivElement>;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
   options,
   handleOptionClick,
   dropdownPosition,
+  dropdownRef,
 }) => {
   return (
     <div
@@ -18,6 +20,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         top: `${dropdownPosition.top}px`,
         left: `${dropdownPosition.left - 16}px`,
       }}
+      ref={dropdownRef}
     >
       <ul className="py-1">
         {options.map((option, index) => (
