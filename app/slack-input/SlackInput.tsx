@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 const getOptions = (searchTerm: string = ""): string[] => {
   const allOptions = [
-    "John Doe",
-    "Jane Smith",
-    "Alice Johnson",
-    "Bob Williams",
-    "Emma Brown",
+    "@John Doe",
+    "@Jane Smith",
+    "@Alice Johnson",
+    "@Bob Williams",
+    "@Emma Brown",
   ];
 
   if (!searchTerm) {
@@ -60,42 +60,33 @@ export default function SlackInput({
         const textBeforeCursor = content
           ? content.substring(0, cursorPosition)
           : "";
+        const lastAtPosition = textBeforeCursor.lastIndexOf("@");
+        const charBeforeAt = textBeforeCursor.charAt(lastAtPosition - 1);
 
-        if (atRange.container === undefined) {
-          const lastChar = textBeforeCursor.slice(-1);
-          const secondLastChar = textBeforeCursor.slice(-2, -1);
-          if (
-            (secondLastChar === "" ||
-              secondLastChar === " " ||
-              secondLastChar === "\n") &&
-            lastChar === "@"
-          ) {
-            setIsDropdownOpen(true);
-            setAtRange({
-              container: range.startContainer,
-              offset: range.startOffset,
-            });
-
-            const rect = range.getBoundingClientRect();
-            const textAreaRect = textAreaRef.current.getBoundingClientRect();
-            setDropdownPosition({
-              top: rect.bottom - textAreaRect.top,
-              left: rect.left - textAreaRect.left,
-            });
-          }
-        } else {
-          if (cursorPosition < atRange.offset) {
-            setIsDropdownOpen(false);
-            setAtRange({
-              container: undefined,
-              offset: -1,
-            });
-          }
-        }
-
-        if (isDropdownOpen) {
-          const searchText = textBeforeCursor.slice(atRange?.offset);
+        if (
+          lastAtPosition !== -1 &&
+          (charBeforeAt === "" || charBeforeAt === " " || charBeforeAt === "\n")
+        ) {
+          setIsDropdownOpen(true);
+          const searchText = textBeforeCursor.slice(lastAtPosition);
           setSearchTerm(searchText);
+          setAtRange({
+            container: range.startContainer,
+            offset: lastAtPosition,
+          });
+
+          const rect = range.getBoundingClientRect();
+          const textAreaRect = textAreaRef.current.getBoundingClientRect();
+          setDropdownPosition({
+            top: rect.bottom - textAreaRect.top,
+            left: rect.left - textAreaRect.left,
+          });
+        } else {
+          setIsDropdownOpen(false);
+          setAtRange({
+            container: undefined,
+            offset: -1,
+          });
         }
       }
     }
@@ -121,7 +112,7 @@ export default function SlackInput({
     if (!textAreaRef.current) return;
     const text = textAreaRef.current.textContent || "";
     const options = getOptions();
-    const regex = new RegExp(`@(${options.join("|")})\\b`, "gi");
+    const regex = new RegExp(`(${options.join("|")})\\b`, "gi");
 
     const fragment = document.createDocumentFragment();
     let lastIndex = 0;
@@ -195,7 +186,9 @@ export default function SlackInput({
       }
 
       const beforeInsertionPoint = fullContent.slice(0, absoluteOffset);
-      const afterInsertionPoint = fullContent.slice(absoluteOffset);
+      const afterInsertionPoint = fullContent.slice(
+        absoluteOffset + searchTerm.length
+      );
       const newContent = beforeInsertionPoint + newText + afterInsertionPoint;
       setInputText(newContent);
       textAreaRef.current.textContent = newContent;
@@ -298,7 +291,7 @@ export default function SlackInput({
           <span className="bg-gray-100 px-4 py-3 font-bold leading-4">
             People
           </span>
-          <span className="px-4 py-2">{nameCard}</span>
+          <span className="px-4 py-2">{nameCard.substring(1)}</span>
         </div>
       )}
       {isDropdownOpen &&
@@ -319,7 +312,7 @@ export default function SlackInput({
                   className="cursor-pointer px-3 py-2 text-sm text-gray-900 hover:bg-gray-100"
                   onClick={() => handleOptionClick(option)}
                 >
-                  {option}
+                  {option.substring(1)}
                 </li>
               ))}
             </ul>
