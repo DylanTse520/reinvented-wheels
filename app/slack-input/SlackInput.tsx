@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import NameCard from "./NameCard";
+
 const getOptions = (searchTerm: string = ""): string[] => {
   const allOptions = [
     "John Doe",
@@ -314,18 +316,7 @@ export default function SlackInput({
         </div>
       )}
       {nameCard && nameCardPosition && (
-        <div
-          className="absolute z-20 flex flex-col overflow-clip rounded border border-gray-300 bg-white text-gray-900 shadow-md"
-          style={{
-            top: `${nameCardPosition.top + 30}px`,
-            left: `${nameCardPosition.left}px`,
-          }}
-        >
-          <span className="bg-gray-100 px-4 py-3 font-bold leading-4">
-            People
-          </span>
-          <span className="px-4 py-2">{nameCard}</span>
-        </div>
+        <NameCard name={nameCard} position={nameCardPosition} />
       )}
       {isDropdownOpen &&
         dropdownPosition &&
