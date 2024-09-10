@@ -53,40 +53,72 @@ export default function SlackInput({
       const newValue = textAreaRef.current.textContent || "";
       setInputText(newValue);
 
-      const range = window.getSelection()?.getRangeAt(0);
+      const selection = window.getSelection();
+      const range = selection?.getRangeAt(0);
+
       if (range) {
-        const content = range.startContainer.textContent;
-        const cursorPosition = range.startOffset;
-        const textBeforeCursor = content
-          ? content.substring(0, cursorPosition)
-          : "";
-        const lastAtPosition = textBeforeCursor.lastIndexOf("@");
-        const charBeforeAt = textBeforeCursor.charAt(lastAtPosition - 1);
+        const startNode = range.startContainer;
+        const parentSpan = startNode.parentElement;
 
         if (
-          lastAtPosition !== -1 &&
-          (charBeforeAt === "" || charBeforeAt === " " || charBeforeAt === "\n")
+          parentSpan &&
+          parentSpan.tagName === "SPAN" &&
+          parentSpan.classList.contains("bg-yellow-200") &&
+          parentSpan.textContent !== parentSpan.dataset.name
         ) {
-          setIsDropdownOpen(true);
-          const searchText = textBeforeCursor.slice(lastAtPosition);
-          setSearchTerm(searchText);
-          setAtRange({
-            container: range.startContainer,
-            offset: lastAtPosition,
-          });
+          const textNode = document.createTextNode(
+            parentSpan.textContent || ""
+          );
+          parentSpan.parentNode?.replaceChild(textNode, parentSpan);
 
-          const rect = range.getBoundingClientRect();
+          const newRange = document.createRange();
+          newRange.setStart(textNode, (parentSpan.textContent || "").length);
+          newRange.collapse(true);
+          selection?.removeAllRanges();
+          selection?.addRange(newRange);
+
+          const rect = newRange.getBoundingClientRect();
           const textAreaRect = textAreaRef.current.getBoundingClientRect();
           setDropdownPosition({
             top: rect.bottom - textAreaRect.top,
             left: rect.left - textAreaRect.left,
           });
         } else {
-          setIsDropdownOpen(false);
-          setAtRange({
-            container: undefined,
-            offset: -1,
-          });
+          const content = startNode.textContent;
+          const cursorPosition = range.startOffset;
+          const textBeforeCursor = content
+            ? content.substring(0, cursorPosition)
+            : "";
+          const lastAtPosition = textBeforeCursor.lastIndexOf("@");
+          const charBeforeAt = textBeforeCursor.charAt(lastAtPosition - 1);
+
+          if (
+            lastAtPosition !== -1 &&
+            (charBeforeAt === "" ||
+              charBeforeAt === " " ||
+              charBeforeAt === "\n")
+          ) {
+            setIsDropdownOpen(true);
+            const searchText = textBeforeCursor.slice(lastAtPosition);
+            setSearchTerm(searchText);
+            setAtRange({
+              container: range.startContainer,
+              offset: lastAtPosition,
+            });
+
+            const rect = range.getBoundingClientRect();
+            const textAreaRect = textAreaRef.current.getBoundingClientRect();
+            setDropdownPosition({
+              top: rect.bottom - textAreaRect.top,
+              left: rect.left - textAreaRect.left,
+            });
+          } else {
+            setIsDropdownOpen(false);
+            setAtRange({
+              container: undefined,
+              offset: -1,
+            });
+          }
         }
       }
     }
