@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Dropdown from "./Dropdown";
 import NameCard from "./NameCard";
+import TextArea from "./TextArea";
 
 const getOptions = (searchTerm: string = ""): string[] => {
   const allOptions = [
@@ -62,7 +63,6 @@ export default function SlackInput({
       if (range) {
         const startNode = range.startContainer;
         const parentSpan = startNode.parentElement;
-
         if (
           parentSpan &&
           parentSpan.tagName === "SPAN" &&
@@ -97,7 +97,7 @@ export default function SlackInput({
           const charBeforeAt = textBeforeCursor.charAt(lastAtPosition - 2);
 
           if (
-            lastAtPosition !== -1 &&
+            lastAtPosition !== 0 &&
             (charBeforeAt === "" ||
               charBeforeAt === " " ||
               charBeforeAt === "\n")
@@ -304,18 +304,12 @@ export default function SlackInput({
 
   return (
     <div className="relative min-h-40">
-      <div
-        ref={textAreaRef}
-        contentEditable
-        onInput={handleInputChange}
-        onKeyDown={handleKeyDown}
-        className="absolute h-full w-full whitespace-pre-wrap break-words rounded-md border border-gray-300 bg-slate-50 p-2 text-gray-900"
+      <TextArea
+        handleInputChange={handleInputChange}
+        handleKeyDown={handleKeyDown}
+        textAreaRef={textAreaRef}
+        inputText={inputText}
       />
-      {inputText === "" && (
-        <div className="pointer-events-none absolute left-[9px] top-[9px] text-gray-400">
-          Type your message here...
-        </div>
-      )}
       {nameCard && nameCardPosition && (
         <NameCard name={nameCard} position={nameCardPosition} />
       )}
