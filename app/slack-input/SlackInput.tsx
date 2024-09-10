@@ -40,6 +40,10 @@ export default function SlackInput({
     top: number;
     left: number;
   } | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
 
   const textAreaRef = useRef<HTMLDivElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -70,6 +74,13 @@ export default function SlackInput({
             setAtRange({
               container: range.startContainer,
               offset: range.startOffset,
+            });
+
+            const rect = range.getBoundingClientRect();
+            const textAreaRect = textAreaRef.current.getBoundingClientRect();
+            setDropdownPosition({
+              top: rect.bottom - textAreaRect.top,
+              left: rect.left - textAreaRect.left,
             });
           }
         } else {
@@ -290,24 +301,30 @@ export default function SlackInput({
           <span className="px-4 py-2">{nameCard}</span>
         </div>
       )}
-      {isDropdownOpen && getOptions(searchTerm).length !== 0 && (
-        <div
-          className="absolute top-full z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg"
-          ref={dropdownRef}
-        >
-          <ul className="py-1">
-            {getOptions(searchTerm).map((option, index) => (
-              <li
-                key={index}
-                className="cursor-pointer px-3 py-2 text-gray-900 hover:bg-gray-100"
-                onClick={() => handleOptionClick(option)}
-              >
-                {option}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {isDropdownOpen &&
+        dropdownPosition &&
+        getOptions(searchTerm).length !== 0 && (
+          <div
+            className="absolute top-full z-10 mt-1 w-fit min-w-32 rounded-md border border-gray-300 bg-white shadow-lg"
+            ref={dropdownRef}
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left - 16}px`,
+            }}
+          >
+            <ul className="py-1">
+              {getOptions(searchTerm).map((option, index) => (
+                <li
+                  key={index}
+                  className="cursor-pointer px-3 py-2 text-sm text-gray-900 hover:bg-gray-100"
+                  onClick={() => handleOptionClick(option)}
+                >
+                  {option}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
     </div>
   );
 }
