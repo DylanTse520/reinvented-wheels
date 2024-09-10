@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import Dropdown from "./Dropdown";
 import NameCard from "./NameCard";
 
 const getOptions = (searchTerm: string = ""): string[] => {
@@ -321,26 +322,11 @@ export default function SlackInput({
       {isDropdownOpen &&
         dropdownPosition &&
         getOptions(searchTerm).length !== 0 && (
-          <div
-            className="absolute top-full z-10 mt-1 w-fit min-w-32 rounded-md border border-gray-300 bg-white shadow-lg"
-            ref={dropdownRef}
-            style={{
-              top: `${dropdownPosition.top}px`,
-              left: `${dropdownPosition.left - 16}px`,
-            }}
-          >
-            <ul className="py-1">
-              {getOptions(searchTerm).map((option, index) => (
-                <li
-                  key={index}
-                  className="cursor-pointer px-3 py-2 text-sm text-gray-900 hover:bg-gray-100"
-                  onClick={() => handleOptionClick(option)}
-                >
-                  {option}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <Dropdown
+            options={getOptions(searchTerm)}
+            handleOptionClick={handleOptionClick}
+            dropdownPosition={dropdownPosition}
+          />
         )}
     </div>
   );
