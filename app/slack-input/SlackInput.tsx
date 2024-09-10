@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 const getOptions = (searchTerm: string = ""): string[] => {
   const allOptions = [
-    "@John Doe",
-    "@Jane Smith",
-    "@Alice Johnson",
-    "@Bob Williams",
-    "@Emma Brown",
+    "John Doe",
+    "Jane Smith",
+    "Alice Johnson",
+    "Bob Williams",
+    "Emma Brown",
   ];
 
   if (!searchTerm) {
@@ -16,7 +16,7 @@ const getOptions = (searchTerm: string = ""): string[] => {
   }
 
   return allOptions.filter((option) =>
-    option.slice(1).toLowerCase().includes(searchTerm.slice(1).toLowerCase())
+    option.toLowerCase().includes(searchTerm.toLowerCase())
   );
 };
 
@@ -64,7 +64,7 @@ export default function SlackInput({
           parentSpan &&
           parentSpan.tagName === "SPAN" &&
           parentSpan.classList.contains("bg-yellow-200") &&
-          parentSpan.textContent !== parentSpan.dataset.name
+          parentSpan.textContent?.slice(1) !== parentSpan.dataset.name
         ) {
           const textNode = document.createTextNode(
             parentSpan.textContent || ""
@@ -76,6 +76,7 @@ export default function SlackInput({
           newRange.collapse(true);
           selection?.removeAllRanges();
           selection?.addRange(newRange);
+          setNameCard(undefined);
 
           const rect = newRange.getBoundingClientRect();
           const textAreaRect = textAreaRef.current.getBoundingClientRect();
@@ -89,8 +90,8 @@ export default function SlackInput({
           const textBeforeCursor = content
             ? content.substring(0, cursorPosition)
             : "";
-          const lastAtPosition = textBeforeCursor.lastIndexOf("@");
-          const charBeforeAt = textBeforeCursor.charAt(lastAtPosition - 1);
+          const lastAtPosition = textBeforeCursor.lastIndexOf("@") + 1;
+          const charBeforeAt = textBeforeCursor.charAt(lastAtPosition - 2);
 
           if (
             lastAtPosition !== -1 &&
@@ -144,7 +145,7 @@ export default function SlackInput({
     if (!textAreaRef.current) return;
     const text = textAreaRef.current.textContent || "";
     const options = getOptions();
-    const regex = new RegExp(`(${options.join("|")})\\b`, "gi");
+    const regex = new RegExp(`@(${options.join("|")})\\b`, "gi");
 
     const fragment = document.createDocumentFragment();
     let lastIndex = 0;
@@ -323,7 +324,7 @@ export default function SlackInput({
           <span className="bg-gray-100 px-4 py-3 font-bold leading-4">
             People
           </span>
-          <span className="px-4 py-2">{nameCard.substring(1)}</span>
+          <span className="px-4 py-2">{nameCard}</span>
         </div>
       )}
       {isDropdownOpen &&
@@ -344,7 +345,7 @@ export default function SlackInput({
                   className="cursor-pointer px-3 py-2 text-sm text-gray-900 hover:bg-gray-100"
                   onClick={() => handleOptionClick(option)}
                 >
-                  {option.substring(1)}
+                  {option}
                 </li>
               ))}
             </ul>
