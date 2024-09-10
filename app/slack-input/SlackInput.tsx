@@ -126,7 +126,7 @@ export default function SlackInput({ onSendMessage }: SlackInputProps) {
         contentEditable
         onInput={handleInputChange}
         onKeyDown={handleKeyDown}
-        className="min-h-40 w-full rounded-md border border-gray-300 bg-slate-50 p-2 text-gray-900"
+        className="min-h-40 w-full whitespace-pre rounded-md border border-gray-300 bg-slate-50 p-2 text-gray-900"
       />
       {(inputText === "" || inputText === undefined) && (
         <div className="pointer-events-none absolute left-[9px] top-[9px] text-gray-400">
